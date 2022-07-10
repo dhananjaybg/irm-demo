@@ -19,14 +19,6 @@ logger.info('Info message');
 logger.error('Error message');
 logger.warn('Warning message');
 
-
-
-//const client = new  MongoClient("mongodb+srv://main_user:muser@democluster.c1xrj.mongodb.net/gamedev?retryWrites=true&w=majority");
-//const client = new  MongoClient("mongodb+srv://main_user:muser@democluster.c1xrj.mongodb.net/irm?retryWrites=true&w=majority");
-//const client = new  MongoClient("mongodb+srv://main_user:muser@irm-test.c1xrj.mongodb.net/Global?retryWrites=true&w=majority");
-//const client = new  MongoClient("mongodb+srv://main_user:muser@irm-test.c1xrj.mongodb.net/Global?retryWrites=true&w=majority");
-
-
 const SRV  = config.get('atlas.srv');
 const client = new  MongoClient(SRV);
 
