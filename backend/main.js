@@ -1,5 +1,9 @@
 const { MongoClient } = require("mongodb");
 const Express = require("express");
+
+const config = require('config');
+
+
 const Cors = require("cors");
 const BodyParser = require("body-parser");
 const winston = require('winston');
@@ -20,10 +24,11 @@ logger.warn('Warning message');
 //const client = new  MongoClient("mongodb+srv://main_user:muser@democluster.c1xrj.mongodb.net/gamedev?retryWrites=true&w=majority");
 //const client = new  MongoClient("mongodb+srv://main_user:muser@democluster.c1xrj.mongodb.net/irm?retryWrites=true&w=majority");
 //const client = new  MongoClient("mongodb+srv://main_user:muser@irm-test.c1xrj.mongodb.net/Global?retryWrites=true&w=majority");
-const client = new  MongoClient("mongodb+srv://main_user:muser@irm-test.cclj5.mongodb.net/Global?retryWrites=true&w=majority");
-
 //const client = new  MongoClient("mongodb+srv://main_user:muser@irm-test.c1xrj.mongodb.net/Global?retryWrites=true&w=majority");
 
+
+const SRV  = config.get('atlas.srv');
+const client = new  MongoClient(SRV);
 
 const server = Express();
 

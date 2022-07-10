@@ -1,7 +1,5 @@
 
 const fetch_loc = async ( valxx ) =>{
-    alert("infetch location async");
-    alert(valxx);
     var lc_code = valxx.slice(0,2);
     //alert(lc_code);
     var modal2 = document.getElementById("myModal");

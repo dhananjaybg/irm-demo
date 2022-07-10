@@ -1,0 +1,13 @@
+{
+    "server": {
+        "port": 3000
+    },
+    "atlas": {
+        "srv": "mongodb+srv://main_user:muser@irm-test.cclj5.mongodb.net/Global?retryWrites=true&w=majority"
+    },
+    "db": {
+        "host": "localhost",
+        "port": 27017,
+        "name": "mongodb"
+    }
+}
