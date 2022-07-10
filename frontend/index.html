@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>  
+    <head>
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+        <script src="//code.jquery.com/jquery-1.12.4.js"></script>
+        <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        <link rel="stylesheet" href="modal.css">
+        <link rel="stylesheet" href="layout.css">
+        <script src="autocomplete.js"></script>
+    </head>
+    <body>
+        <div class="flex-container-row">
+            <div id="myModal" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <div id="myModalcontent">..</div>
+                </div>
+            </div>
+            <div class= "flex-container-left"> 
+                <div id="facet1">
+                    <H4> Filter Facets </H4>
+                </div>
+                <div>
+                    <H3>...</H3>
+                </div>
+                <div>
+                    <H3>...</H3>
+                </div>
+            </div>
+            <div class= "flex-container-center">
+                <div>
+                    <img src="irm-logo-banner.jpeg" width="500" height="150" /> 
+                    
+                    <br>
+                    <label for="customer">Select Customer:</label>
+                    <select name="customer" id="lk-customer">
+                    </select>
+                    <br>
+                    <label for="location">Selected Location:</label>
+                    <!--select name="location" id="lk-location">
+                        <option value="US">US</option>
+                        <option value="DE">Germany</option>
+                    </select-->
+                    <input name="location" id="lk-location" type="text" readonly/>
+                    <br>
+                    <input id="term" type="text"/>
+                    <button type ="button" onclick="search('search')">Customer Search</button>
+                    <br>
+                    <input id="fterm" type="text"/>
+                    <button onclick="search('facet_n_search')">Description Lookup</button>
+                    <!-- ;search(document.getElementById('fterm')) -->
+                    <br>
+                </div>
+                <div class="myform">
+                    <!--form action="http://localhost:3000/dbsearch" method="get"-->
+                    <label for="BX-PLUSID">Enter the BOX-PLUSID:</label>
+                    <input id="BX-PLUSID" type="text"/><br>
+                    <label for="RN-RECCODE">Enter the RN-RECCODE:</label>
+                    <input id="RN-RECCODE" type="text"/><br>
+                    <label for="barcode">Enter the Barcode:</label>
+                    <input id="barcode" type="text"/><br>
+                    <button onclick="dbsearch()">DatabaseSearch</button>        
+                </div>
+                <div><H4>Result Set</H4></div>
+                <div id="output"> </div>
+            </div>
+        </div>
+        <script src="apicalls.js"></script>
+        <script src="selectops.js"></script>
+        <script src="modal.js"></script>
+    </body>
+</html>
