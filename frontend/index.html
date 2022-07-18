@@ -4,19 +4,37 @@
         <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
         <script src="//code.jquery.com/jquery-1.12.4.js"></script>
         <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        
+       
+     
+        <!--script src="https://code.jquery.com/jquery-3.5.1.js"></script-->
+        <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+        
+
         <link rel="stylesheet" href="modal.css">
         <link rel="stylesheet" href="layout.css">
         <script src="autocomplete.js"></script>
+
     </head>
     <body>
-        <div class="flex-container-row">
-            <div id="myModal" class="modal">
-                <!-- Modal content -->
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <div id="myModalcontent">..</div>
-                </div>
+        <div id="myModal" class="modal">
+            <!-- Modal content -->
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div id="myModalcontent">..</div>
             </div>
+        </div>
+
+        <!--div class="flex-container-row">
+            <div>
+                <img src="\icons\hamburger-menu" width="100%" height="100%"/> 
+            </div>
+            <div>
+                user logged :  user@login.com 
+            </div>
+        </div-->
+        <div class="flex-container-row">
             <div class= "flex-container-left"> 
                 <div id="facet1">
                     <H4> Filter Facets </H4>
@@ -29,9 +47,11 @@
                 </div>
             </div>
             <div class= "flex-container-center">
+                
                 <div>
-                    <img src="irm-logo-banner.jpeg" width="500" height="150" /> 
-                    
+                    <img src="irm-logo-banner.jpeg" width="100%" height="100%" /> 
+                </div>
+                <div>
                     <br>
                     <label for="customer">Select Customer:</label>
                     <select name="customer" id="lk-customer">
@@ -47,8 +67,9 @@
                     <input id="term" type="text"/>
                     <button type ="button" onclick="search('search')">Customer Search</button>
                     <br>
-                    <input id="fterm" type="text"/>
-                    <button onclick="search('facet_n_search')">Description Lookup</button>
+                    <input id="BX-MAJDESC" type="text"/>
+                    <!--button onclick="search('facet_n_search')">Description Lookup</button-->
+                    <button onclick="search_desc()">Description Lookup</button>
                     <!-- ;search(document.getElementById('fterm')) -->
                     <br>
                 </div>
@@ -62,12 +83,36 @@
                     <input id="barcode" type="text"/><br>
                     <button onclick="dbsearch()">DatabaseSearch</button>        
                 </div>
-                <div><H4>Result Set</H4></div>
-                <div id="output"> </div>
+                <!--
+                <div><H4>Result Set <input id="showtable" type="checkbox" unchecked>Show Tables</input></H4></div>
+                -->
+                <div id="output"> 
+                    <table id="table_out" class="display" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>CS-ID</th>
+                                <th>LC-ID</th>
+                                <th>BX-PLUSID</th>
+                                <th>RN-RECCODE</th>
+                                <th>RN-MAJDESC</th>
+                                <th>RN-MINDESC</th>
+                                <th>BX-DESTDATE</th>
+                                <th>Location</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody_rows">
+                        </tbody>
+                    </table>   
+                </div>
+               
             </div>
         </div>
+       
+
         <script src="apicalls.js"></script>
         <script src="selectops.js"></script>
         <script src="modal.js"></script>
+
+
     </body>
 </html>

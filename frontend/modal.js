@@ -32,6 +32,37 @@ const fetch_loc = async ( valxx ) =>{
 
 };
 
+
+const pop_doc = async ( id_val, loc , cs_id ) =>{
+    
+    var modal2 = document.getElementById("myModal");
+    var modal3 = document.getElementById("myModalcontent");
+    $("#myModalcontent").empty();
+    
+    try
+    {
+
+        let record = await fetch("http://localhost:3000/getdoc/?docid="+id_val)
+            .then(response => response.json());
+        console.log(record);
+        let mesC = document.createElement("table");
+        mesC.innerHTML = `<thead><tr><th>Field</th><th>Value</th></tr></thead><tbody id='disp'></tbody>`;
+
+        Object.entries(record).forEach(entry => {
+            let local_tr = document.createElement("tr");
+            local_tr.innerHTML = `<td>${entry[0]}</td><td>${entry[1]}</td>`; 
+            mesC.append(local_tr);
+          });
+
+        modal3.appendChild(mesC);
+
+    }catch(e){
+        console.error(e);
+    }
+
+    modal2.style.display = "block";
+};
+
 // Get the modal
 var modal = document.getElementById("myModal");
 

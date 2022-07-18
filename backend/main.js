@@ -1,4 +1,4 @@
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const Express = require("express");
 
 const config = require('config');
@@ -38,18 +38,34 @@ var loc_collection;
 
 const stub_array  = [
     {
+      "id":1,
       "_id": "628d33ae238357006ce26f7f",
       "location": "US",
       "BX-PLUSID": "METB000028Z",
       "CS-ID": "METRX"
     },
     {
+      "id":2,
       "_id": "628d33ae238357006ce26f8b",
       "location": "US",
       "BX-PLUSID": "METB000040Z",
       "CS-ID": "METRX"
+    },
+    {
+      "id":3,
+      "_id": "t3teg52y2565g435y74ygg45g",
+      "location": "DE",
+      "BX-PLUSID": "RWTQWT5345",
+      "CS-ID": "FSDFRCD"
     }
 ]
+
+server.get("/fetch4tables", async (request, response) => {
+  let samba = {};
+  samba["data"] = stub_array;
+  console.log("Show SAMBA **************************");
+  response.send(samba);
+});
 
 server.get("/fetchfacet",async (request, response) =>{
 
@@ -90,15 +106,14 @@ server.get("/fetchfacet",async (request, response) =>{
     }
 });
 
-
-server.get("/get/id", async (request, response) => {
-    const doc_id = `${request.query['doc_id']}`;
-    console.error(request.params.id);
-    console.error(request.params.id.value);
-
+server.get("/getdoc", async (request, response) => {
+    console.log("somethign something");
+    const doc_id = `${request.query.docid}`;
+    console.log(doc_id);
     try {
-        let result = await collection.findOne({ "_id": ObjectID(request.params.id) });
-        console.log(result);
+        let query = {}
+        query['_id'] = new ObjectId(doc_id);
+        let result = await collection.findOne(query,{});
         response.send(result);
     } catch (e) {
         response.status(500).send({ message: e.message });
@@ -180,30 +195,32 @@ server.get("/fetch_cust_byloc", async (request, response) => {
 });
 
 server.get("/dbsearch", async (request, response) =>{
-    console.log('/dbsearch ..22');
+    console.log('/dbsearch .. classic..');
     const location = `${request.query['location']}`;
     console.log(location);
     const csid = `${request.query['CS-ID']}`;
     console.log(csid);
-    const bxplusid = `${request.query['BX-PLUSID']}`;
+    const bxplusid = `${request.query['bx_plusid']}`;
     console.log(bxplusid);
+    const rnreccode = `${request.query['rn_reccode']}`;
+    console.log(rnreccode);
 
 
     try {
         const profiler = logger.startTimer();
-        const  query_builder = {
-        };
-        const  project_stage = {
-        };
+        const  query_builder = {};
+        const  project_stage = {};
+
         query_builder['location'] = location;
         query_builder['CS-ID'] = csid;
         if (bxplusid){
             query_builder['BX-PLUSID'] = bxplusid;
         }
+        if (rnreccode){
+          query_builder['RN-RECCODE'] = rnreccode;
+        }
+
         console.log(query_builder);
-
-        console.log("post1");
-
         project_stage['CS-ID']  = 1;
         project_stage['CD-ID']  = 1; 
         project_stage['LC-ID']  = 1;
@@ -223,121 +240,60 @@ server.get("/dbsearch", async (request, response) =>{
     }
 });
 
-
-server.get("/searcha", async (request, response) =>{
-    console.log('/searcha ..3');
-
-    const aggpipe_OG = [
-        {
-          '$search': {
-            'index': 'default', 
-            'autocomplete': {
-              'query': `${request.query.term}`, 
-              'path': 'CS-ID', 
-              'fuzzy': {
-                'maxEdits': 2, 
-                'prefixLength': 3, 
-                'maxExpansions': 256
+server.get("/searchac2", async (request, response) =>{
+    console.log('/searchac2... >>> FOR RN-RECODE >>>');
+  
+    let lkp = `${request.query.lkup_field}`;
+  
+    const aggpipe = [
+      {
+        '$search': {
+          'compound': {
+            'must': [
+              {
+                'autocomplete': {
+                  'query': `${request.query.term}`, 
+                  'path': `${request.query.lkup_field}`, 
+                  'fuzzy': {
+                    'maxEdits': 2, 
+                    'prefixLength': 2, 
+                    'maxExpansions': 256
+                  }
+                }
+              }, {
+                'text': {
+                  'query': `${request.query.cs_id}`, 
+                  'path': 'CS-ID'
+                }
               }
-            }
-          }
-        }, 
-        {
-            '$limit': 10
-        }, {
-          '$project': {
-            '_id': 0, 
-            'CS-ID': 1
+            ]
           }
         }
-      ];
-
-      const aggpipe = [
-        {
-          '$search': {
-            'index': 'default', 
-            'autocomplete': {
-              'query': `${request.query.term}`, 
-              'path': 'CS-ID', 
-              'fuzzy': {
-                'maxEdits': 2, 
-                'prefixLength': 3, 
-                'maxExpansions': 256
-              }
-            }
-          }
-        }, 
-        {
-            '$limit': 10
+      }, {
+        '$limit': 10
+      }, {
+        '$project': {
+          '_id': 0, 
+          'RN-RECCODE': 1
         }
-      ];
+      }, {
+        '$group': {
+          '_id': '$RN-RECCODE555'
+        }
+      }
+    ];
+
+    //console.log(aggpipe);
+    let llp = lkp;
+    aggpipe[2]['$project'][llp] = 1;
+    aggpipe[3]['$group']['_id'] = "$"+llp;
+    //console.log(aggpipe);
 
     try {
         const profiler = logger.startTimer();
         //'query': `${request.query.term}`,
         let results = await collection.aggregate(aggpipe).toArray();
-
-        //console.log('returning:  '+results);
-
-        //results2 = [{'CS-ID': "Bank1"},{'CS-ID': "Bank2"},{'CS-ID': "Bank3"},{'CS-ID': "Bank4"},{'CS-ID': "Bank5"},{'CS-ID': "Bank5"}];
-
-        response.send(results);
-        profiler.done({ message: 'searcha: Logging message' });
-
-    }catch(e){
-        response.status(500).send({ message: e.message });
-    }
-});
-
-
-
-server.get("/searchac", async (request, response) =>{
-    console.log('/searchac ... ??');
-
-    const coll2 = client.db("Global").collection("Customer_by_location");
-
-    const aggpipe = [
-        {
-          
-          '$search': {
-            'index': 'lookup',
-            'autocomplete': {
-              'query': `${request.query.term}`, 
-              'path': '_id.Customer', 
-              'fuzzy': {
-                'maxEdits': 2, 
-                'prefixLength': 2, 
-                'maxExpansions': 256
-              }
-            }
-          }
-        }, 
-        {
-            '$limit': 10
-        },
-        {
-            '$addFields': {
-                'CS-ID': '$_id.Customer'
-              }
-        },
-        {
-          '$project': {
-            '_id': 0,
-            'CS-ID' :1
-          }
-        }
-      ];
-    
-    //console.log("firing:" + aggpipe.stringify());
-    try {
-        const profiler = logger.startTimer();
-        //'query': `${request.query.term}`,
-        let results = await coll2.aggregate(aggpipe).toArray();
-
-        console.log('returning: 22  '+ results);
-
-        //results2 = [{'CS-ID': "Bank1"},{'CS-ID': "Bank2"},{'CS-ID': "Bank3"},{'CS-ID': "Bank4"},{'CS-ID': "Bank5"},{'CS-ID': "Bank5"}];
-
+        //console.log(results)
         response.send(results);
         profiler.done({ message: 'searchac: Logging message' });
 
@@ -346,8 +302,58 @@ server.get("/searchac", async (request, response) =>{
     }
 });
 
+server.get("/searchac", async (request, response) =>{
+  console.log('/searchac ... ??');
+  const coll2 = client.db("Global").collection("Customer_by_location");
+  const aggpipe = [
+      {
+        '$search': {
+          'index': 'lookup',
+          'autocomplete': {
+            'query': `${request.query.term}`, 
+            'path': '_id.Customer', 
+            'fuzzy': {
+              'maxEdits': 2, 
+              'prefixLength': 2, 
+              'maxExpansions': 256
+            }
+          }
+        }
+      }, 
+      { '$limit': 10 },
+      {
+        '$addFields': {
+            'CS-ID': '$_id.Customer'
+          }
+      },
+      {
+        '$project': {
+          '_id': 0,
+          'CS-ID' :1
+        }
+      }
+    ];
+  
+  //console.log("firing:" + aggpipe.stringify());
+  try {
+      const profiler = logger.startTimer();
+      //'query': `${request.query.term}`,
+      let results = await coll2.aggregate(aggpipe).toArray();
+
+      console.log('returning: 22  '+ results);
+
+      //results2 = [{'CS-ID': "Bank1"},{'CS-ID': "Bank2"},{'CS-ID': "Bank3"},{'CS-ID': "Bank4"},{'CS-ID': "Bank5"},{'CS-ID': "Bank5"}];
+
+      response.send(results);
+      profiler.done({ message: 'searchac: Logging message' });
+
+  }catch(e){
+      response.status(500).send({ message: e.message });
+  }
+});
+
 server.get("/search", async (request, response) =>{
-    console.log("/search.. ");
+    console.log("/search.. simple ");
     console.log("**Outpur IN");
     console.log("**Outpur term ==> " + `${request.query.term}`);
     console.log("**Outpur pathvar ==> " + `${request.query.path_var}`);
@@ -376,11 +382,13 @@ server.get("/search", async (request, response) =>{
         {
             $project: {
                 _id: 1,
-                'BX-PLUSID': 1,
                 'CS-ID': 1,
                 'LC-ID': 1,
-                'BX-MAJDESC':1
-
+                'BX-PLUSID': 1,
+                'RN-RECCODE':1,
+                'BX-MAJDESC':1,
+                'BX-MINESC':1,
+                'BX-DESTDATE':1
             }
         },
         {
@@ -403,6 +411,156 @@ server.get("/search", async (request, response) =>{
         console.error(e);
     }
 });
+
+server.get("/search_cpd", async (request, response) =>{
+  console.log("/search compound /");
+  const location = `${request.query['location']}`;
+  console.log(location);
+  const csid = `${request.query['CS-ID']}`;
+  console.log(csid);
+  const bxplusid = `${request.query['bx_plusid']}`;
+  console.log(bxplusid);
+  const bxmajdesc = `${request.query['bx_majdesc']}`;
+  console.log(bxmajdesc);
+  const rnreccode = `${request.query['rn_reccode']}`;
+  console.log(rnreccode);
+
+  const search_cpd_stage = {};
+  const project_stage = {};
+  const pipe = [];
+  const must_arr = [];
+
+  try{
+      const must_loc_q = {}
+      must_loc_q['text'] = {};
+      must_loc_q['text']['query'] =  `${request.query['location']}`;
+      must_loc_q['text']['path'] = "location";
+
+      const must_cust_q = {}
+      must_cust_q['text']={};
+      must_cust_q['text']['query'] = `${request.query['CS-ID']}`;
+      must_cust_q['text']['path'] = "CS-ID";
+
+      const must_desc_q = {}
+      must_desc_q['text']={}
+      must_desc_q['text']['query'] = `${request.query['bx_majdesc']}`;
+      must_desc_q['text']['path'] = "BX-MAJDESC";
+
+      must_arr.push(must_loc_q);
+      must_arr.push(must_cust_q);
+      must_arr.push(must_desc_q);
+
+
+      search_cpd_stage['$search'] = {};
+      search_cpd_stage['$search']['compound']= {};
+      search_cpd_stage['$search']['compound']['must']= must_arr;
+      search_cpd_stage['$search']['highlight']= {};
+      search_cpd_stage['$search']['highlight']['path']= "BX-MAJDESC";
+      
+      //console.log(JSON.stringify(search_cpd_stage));
+      
+      //project_stage['_id']  = 1;
+      project_stage['CS-ID']  = 1;
+      project_stage['LC-ID']  = 1; 
+      project_stage['BX-PLUSID']  = 1;
+      project_stage['RN-RECCODE']  = 1;
+      project_stage['BX-MAJDESC']  = 1;
+      project_stage['BX-MINDESC']  = 1;
+      project_stage['BX-DESTDATE']  = 1;
+      //project_stage['highlights'] = {};
+      //project_stage['highlights']['$meta'] = 'searchHighlights';
+
+      console.log(project_stage)
+
+      const limit_stage ={};
+      limit_stage['$limit']  = 15;
+
+      pipe.push(search_cpd_stage);
+      //pipe.push(project_stage); 
+      pipe.push(limit_stage);
+      
+
+    }catch(e){
+      //response.status(500).send({ message: e.message });
+      console.log(e.message);
+  };
+
+  console.log("DISPLAY _PIPE");
+  console.log(pipe);
+
+  try {
+    let results = await collection.aggregate(pipe).toArray();
+    console.log(results)
+    response.send(results);
+
+  }catch(e){
+    console.error(e);
+  }
+
+});
+
+
+server.get("/search_cpd_BCK", async (request, response) =>{
+  console.log("/search compound /");
+  console.log("**Outpur term ==> " + `${request.query.cust_id}`);
+  console.log("**Outpur pathvar ==> " + `${request.query.desc_term}`);
+  
+  let cust_val = `${request.query.cust_id}`;
+  let desc_val = `${request.query.desc_term}`;
+  let desc_path = `${request.query.path_var}`;
+
+  console.log(cust_val+desc_val+desc_path);
+  let aggpipe = [
+    {
+      '$search': {
+        'compound': {
+          'must': [
+            {
+              'text': {
+                'query': `${request.query.desc_term}`, 
+                'path': `${request.query.path_var}`
+              }
+            }, {
+              'text': {
+                'query': `${request.query.cust_id}`, 
+                'path': 'CS-ID'
+              }
+            }
+          ]
+        }, 
+        'highlight': {
+          'path': `${request.query.path_var}`
+        }
+      }
+    }, {
+      '$project': {
+        '_id': 1, 
+        'CS-ID': 1, 
+        'LC-ID': 1, 
+        'BX-PLUSID': 1, 
+        'BX-MAJDESC': 1, 
+        'BX-MINDESC': 1, 
+        'RN-RECCODE': 1, 
+        'BX-DESTDATE': 1, 
+        'highlights': {
+          '$meta': 'searchHighlights'
+        }
+      }
+    }, {
+      '$limit': 15
+    }
+  ]
+
+  console.log(aggpipe);
+  try {
+      let results = await collection.aggregate(aggpipe).toArray();
+      console.log(results)
+      response.send(results);
+  }catch(e){
+      console.error(e);
+  }
+});
+
 
 server.listen("3000", async () =>{
     try {
