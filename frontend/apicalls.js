@@ -30,17 +30,20 @@ const dbsearchfacet = async ( facet_term ) =>{
         bx_majdesc = document.getElementById("BX-MAJDESC");
         bx_loc = document.getElementById("lk-location");
     }
+
     let output = document.getElementById("facet1")
     output.innerHTML = "";
 
     try
     {
+        
         let result = await fetch("http://localhost:3000/fetchfacet?loc="+bx_loc.value+"&BX-MAJDESC="+bx_majdesc.value)
             .then(response => response.json());
         console.log(result);
         result.forEach(chat => {
             let messageContainer = document.createElement("a");
-            messageContainer.innerHTML = `${chat._id}(${chat.count})` 
+            const myArray = chat._id.split("-");
+            messageContainer.innerHTML = `${myArray[0]}(${chat.count})` 
             messageContainer.innerHTML += `</br>`
             output.appendChild(messageContainer);
         });
@@ -187,6 +190,7 @@ const search_BCK = async ( valx ) =>{
 }; 
 
 const search_desc = async ( valx ) =>{
+    //alert("search_desc");
     let loc_term = document.getElementById("lk-location");
     let cs_term = document.getElementById("lk-customer");
     let bx_plusid = document.getElementById("BX-PLUSID");
@@ -209,6 +213,15 @@ const search_desc = async ( valx ) =>{
     let output = document.getElementById("tbody_rows");
     output.innerHTML = "";
 
+    try{
+        //alert(desc_term.value);
+        dbsearchfacet(desc_term.value);
+
+    }catch(e){
+        console.error(e);
+    }
+
+
     try
     {
         //let result = await fetch("http://localhost:3000/search_cpd?cust_id="+cust_id.value+"&desc_term="+desc_term.value+"&path_var="+path_var)
@@ -217,16 +230,43 @@ const search_desc = async ( valx ) =>{
         
         
         result.forEach(chat => {
-            let tab_row = document.createElement("tr");
-            tab_row.innerHTML += `<td id='${chat._id}' onclick=pop_doc('${chat._id}')><a>${chat['CS-ID']}</a></td>`
-            tab_row.innerHTML += `<td> ${chat['LC-ID']}</td>`
-            tab_row.innerHTML += `<td> ${chat['BX-PLUSID']}</td>`
-            tab_row.innerHTML += `<td> ${chat['RN-RECCODE']}</td>`
-            tab_row.innerHTML += `<td> ${chat['BX-MAJDESC']}</td>`
-            tab_row.innerHTML += `<td> ${chat['BX-MINDESC']}</td>`
-            tab_row.innerHTML += `<td> ${chat['BX-DESTDATE']}</td>`
-            tab_row.innerHTML += `<td><button type="button" onclick="fetch_loc('${chat['LC-ID']}')" id="myBtn">Get Location</button></td>`
-            output.appendChild(tab_row);
+            
+            
+            chat.highlights.forEach(highlights =>{
+                let texts = highlights.texts;
+
+                let replacements = texts.map(text =>{
+                    if (text.type == "hit"){
+                        return `<mark>${text.value}</mark>`
+                    } else {
+                        return text.value;
+                    }
+                }).join("");
+                    
+                let originals = texts.map(text =>{
+                    return text.value;
+                }).join("");
+
+                console.log(chat)
+                console.log("=====>"+originals);
+                console.log("=====>"+replacements);  
+                
+                chat['BX-MAJDESC'] = chat['BX-MAJDESC'].replace(originals, replacements);
+
+                let tab_row = document.createElement("tr");
+                tab_row.innerHTML += `<td id='${chat._id}' onclick=pop_doc('${chat._id}')><a>${chat['CS-ID']}</a></td>`
+                tab_row.innerHTML += `<td> ${chat['LC-ID']}</td>`
+                tab_row.innerHTML += `<td> ${chat['BX-PLUSID']}</td>`
+                tab_row.innerHTML += `<td> ${chat['RN-RECCODE']}</td>`
+                tab_row.innerHTML += `<td> ${chat['BX-MAJDESC']}</td>`
+                tab_row.innerHTML += `<td> ${chat['BX-MINDESC']}</td>`
+                tab_row.innerHTML += `<td> ${chat['BX-DESTDATE']}</td>`
+                tab_row.innerHTML += `<td><button type="button" onclick="fetch_loc('${chat['LC-ID']}')" id="myBtn">Get Location</button></td>`
+                
+                output.appendChild(tab_row);
+            });
+            
+            
         });
 
     }catch(e){
@@ -291,6 +331,7 @@ const search = async ( valx ) =>{
                             return text.value;
                         }
                     }).join("");
+
                     let originals = texts.map(text =>{
                         return text.value;
                     }).join("");

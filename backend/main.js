@@ -68,40 +68,48 @@ server.get("/fetch4tables", async (request, response) => {
 });
 
 server.get("/fetchfacet",async (request, response) =>{
+  console.log("/fetchfacet...");
+  //let c = `${request.query.BX-MAJDESC.value}`;
+  //let d = `${request.query.BX-MAJDESC}`;
+  //alert(c+d);
+
+  const facetpipe = [
+    {
+      '$searchMeta': {
+        'facet': {
+          'operator': {
+            'text': {
+              'query': `${request.query['BX-MAJDESC']}`,
+              'path': 'BX-MAJDESC'
+            }
+          }, 
+          'facets': {
+            'dateFacet': {
+              'type': 'date', 
+              'path': 'BX-DESTDATE', 
+              'boundaries': [
+                new Date('Thu, 01 Jan 2004 00:00:00 GMT'), new Date('Sat, 01 Jan 2005 00:00:00 GMT'), new Date('Sun, 01 Jan 2006 00:00:00 GMT'), new Date('Mon, 01 Jan 2007 00:00:00 GMT')
+              ], 
+              'default': 'other'
+            }
+          }
+        }
+      }
+    }
+  ];
 
     try {
 
         const profiler = logger.startTimer();
-        let results = await collection.aggregate([
-            {
-                '$searchMeta': {
-                'facet': {
-                  'operator': {
-                    'text': {
-                      'query': `${request.query['BX-MAJDESC']}`,
-                      'path': 'BX-MAJDESC'
-                    }
-                  }, 
-                  'facets': {
-                    'stringFacet': {
-                      'type': 'string', 
-                      'path': 'CS-ID', 
-                      'numBuckets': 5
-                    }
-                  }
-                }
-              }
-            }
-          ]).toArray();
+        let results = await collection.aggregate(facetpipe).toArray();
           console.log("UP thete")
           console.log(results)
 
-        response.send(results[0]['facet']['stringFacet']['buckets']);
+        response.send(results[0]['facet']['dateFacet']['buckets']);
         profiler.done({ message: 'Logging message' });
 
     } catch (e) {
         logger.error('Error message');
-
         console.error(e);
     }
 });
@@ -458,17 +466,19 @@ server.get("/search_cpd", async (request, response) =>{
       search_cpd_stage['$search']['highlight']['path']= "BX-MAJDESC";
       
       //console.log(JSON.stringify(search_cpd_stage));
+      const project_st = {};
+      project_st['_id']  = 1;
+      project_st['CS-ID']  = 1;
+      project_st['LC-ID']  = 1; 
+      project_st['BX-PLUSID']  = 1;
+      project_st['RN-RECCODE']  = 1;
+      project_st['BX-MAJDESC']  = 1;
+      project_st['BX-MINDESC']  = 1;
+      project_st['BX-DESTDATE']  = 1;
+      project_st['highlights'] = {};
+      project_st['highlights']['$meta'] = 'searchHighlights';
       
-      //project_stage['_id']  = 1;
-      project_stage['CS-ID']  = 1;
-      project_stage['LC-ID']  = 1; 
-      project_stage['BX-PLUSID']  = 1;
-      project_stage['RN-RECCODE']  = 1;
-      project_stage['BX-MAJDESC']  = 1;
-      project_stage['BX-MINDESC']  = 1;
-      project_stage['BX-DESTDATE']  = 1;
-      //project_stage['highlights'] = {};
-      //project_stage['highlights']['$meta'] = 'searchHighlights';
+      project_stage['$project']= project_st;
 
       console.log(project_stage)
 
@@ -476,7 +486,7 @@ server.get("/search_cpd", async (request, response) =>{
       limit_stage['$limit']  = 15;
 
       pipe.push(search_cpd_stage);
-      //pipe.push(project_stage); 
+      pipe.push(project_stage); 
       pipe.push(limit_stage);
       
 
