@@ -72,6 +72,7 @@ server.get("/fetchfacet",async (request, response) =>{
   //let c = `${request.query.BX-MAJDESC.value}`;
   //let d = `${request.query.BX-MAJDESC}`;
   //alert(c+d);
+//
 
   const facetpipe = [
     {
@@ -88,7 +89,12 @@ server.get("/fetchfacet",async (request, response) =>{
               'type': 'date', 
               'path': 'BX-DESTDATE', 
               'boundaries': [
-                new Date('Thu, 01 Jan 2004 00:00:00 GMT'), new Date('Sat, 01 Jan 2005 00:00:00 GMT'), new Date('Sun, 01 Jan 2006 00:00:00 GMT'), new Date('Mon, 01 Jan 2007 00:00:00 GMT')
+                new Date('Thu, 01 Jan 2000 00:00:00 GMT'), 
+                new Date('Sat, 01 Jan 2005 00:00:00 GMT'), 
+                new Date('Sun, 01 Jan 2010 00:00:00 GMT'), 
+                new Date('Mon, 01 Jan 2015 00:00:00 GMT'),
+                new Date('Mon, 01 Jan 2020 00:00:00 GMT'),
+                new Date('Mon, 01 Jan 2022 00:00:00 GMT') 
               ], 
               'default': 'other'
             }

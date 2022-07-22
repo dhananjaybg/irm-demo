@@ -15,7 +15,7 @@ var getUrlParameter = function getUrlParameter(sParam) {
     }
 };
 
-
+/*
 $('#showtable').change(function() {
     // this will contain a reference to the checkbox   
     if (this.checked) {
@@ -28,6 +28,7 @@ $('#showtable').change(function() {
         $('#table_out').hide();
     }
 });
+*/
 
 $( document ).ready(function() {    
 
@@ -60,10 +61,12 @@ $( document ).ready(function() {
             });
         }
         $('#lk-location').val(geo_location);
-        //$('#lk-location').prop('disabled', 'disabled');
-        //run Database Search 1 time
+       
 
+        //run Database Search and Facet 1st time
         dbsearch();
+        //till I figure out empty facet queries
+        //dbsearchfacet();
 
     }catch(e){
         console.error(e);

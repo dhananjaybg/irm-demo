@@ -21,25 +21,18 @@ const opendoc = async () =>{
 };
 
 const dbsearchfacet = async ( facet_term ) =>{
-    let bx_majdesc = "";
-    let bx_loc = "US";
-
-    if (facet_term){
-        bx_majdesc = facet_term
-    }else{
-        bx_majdesc = document.getElementById("BX-MAJDESC");
-        bx_loc = document.getElementById("lk-location");
-    }
+    let bx_majdesc = document.getElementById("BX-MAJDESC");
+    let bx_loc = document.getElementById("lk-location");
 
     let output = document.getElementById("facet1")
     output.innerHTML = "";
 
     try
     {
-        
         let result = await fetch("http://localhost:3000/fetchfacet?loc="+bx_loc.value+"&BX-MAJDESC="+bx_majdesc.value)
             .then(response => response.json());
         console.log(result);
+        //alert(result);
         result.forEach(chat => {
             let messageContainer = document.createElement("a");
             const myArray = chat._id.split("-");
@@ -102,7 +95,7 @@ const dbsearch_doc = async ( val ) =>{
 
 };
 
-const search_BCK = async ( valx ) =>{
+const search_BCK_OLD_CODE = async ( valx ) =>{
     //global Variables;
     let loc_term = document.getElementById("lk-location");
     let cs_term = document.getElementById("lk-customer");
@@ -214,9 +207,7 @@ const search_desc = async ( valx ) =>{
     output.innerHTML = "";
 
     try{
-        //alert(desc_term.value);
         dbsearchfacet(desc_term.value);
-
     }catch(e){
         console.error(e);
     }
