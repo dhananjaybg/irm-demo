@@ -436,13 +436,33 @@ server.get("/search_cpd", async (request, response) =>{
   console.log(bxplusid);
   const bxmajdesc = `${request.query['bx_majdesc']}`;
   console.log(bxmajdesc);
+  const bxmindesc = `${request.query['bx_mindesc']}`;
+  console.log(bxmindesc);
   const rnreccode = `${request.query['rn_reccode']}`;
   console.log(rnreccode);
+
+  const year_filter = `${request.query['year']}`;
+  const must_destdate_q = {};
+  const gt_filter = year_filter;
+  const lt_filter = 5 + year_filter;
+  
+
+  if (year_filter != 'undefined'){
+      console.log(year_filter);
+
+      must_destdate_q['range']={};
+      must_destdate_q['range']['gt'] = new Date(gt_filter+"-01-01");
+      must_destdate_q['range']['lt'] = new Date((lt_filter)+"-12-31");
+      must_destdate_q['range']['path'] = "BX-DESTDATE";
+  }
+  
 
   const search_cpd_stage = {};
   const project_stage = {};
   const pipe = [];
   const must_arr = [];
+  const should_arr = [];
+
 
   try{
       const must_loc_q = {}
@@ -455,23 +475,37 @@ server.get("/search_cpd", async (request, response) =>{
       must_cust_q['text']['query'] = `${request.query['CS-ID']}`;
       must_cust_q['text']['path'] = "CS-ID";
 
-      const must_desc_q = {}
-      must_desc_q['text']={}
-      must_desc_q['text']['query'] = `${request.query['bx_majdesc']}`;
-      must_desc_q['text']['path'] = "BX-MAJDESC";
+      
 
       must_arr.push(must_loc_q);
       must_arr.push(must_cust_q);
-      must_arr.push(must_desc_q);
+      if (year_filter != 'undefined'){
+        must_arr.push(must_destdate_q);
+      }
 
+      const should_major_desc_q = {}
+      should_major_desc_q['text']={}
+      should_major_desc_q['text']['query'] = `${request.query['bx_majdesc']}`;
+      should_major_desc_q['text']['path'] = "BX-MAJDESC";
+
+      const should_min_desc_q = {}
+      should_min_desc_q['text']={}
+      should_min_desc_q['text']['query'] = `${request.query['bx_majdesc']}`;
+      should_min_desc_q['text']['path'] = "BX-MINDESC";
+
+      should_arr.push(should_major_desc_q);
+      should_arr.push(should_min_desc_q);
 
       search_cpd_stage['$search'] = {};
       search_cpd_stage['$search']['compound']= {};
       search_cpd_stage['$search']['compound']['must']= must_arr;
+      search_cpd_stage['$search']['compound']['should']= should_arr;
+      search_cpd_stage['$search']['compound']['minimumShouldMatch']= 1;
       search_cpd_stage['$search']['highlight']= {};
       search_cpd_stage['$search']['highlight']['path']= "BX-MAJDESC";
       
-      //console.log(JSON.stringify(search_cpd_stage));
+      console.log(JSON.stringify(search_cpd_stage));
+
       const project_st = {};
       project_st['_id']  = 1;
       project_st['CS-ID']  = 1;
@@ -489,7 +523,7 @@ server.get("/search_cpd", async (request, response) =>{
       console.log(project_stage)
 
       const limit_stage ={};
-      limit_stage['$limit']  = 15;
+      limit_stage['$limit']  = 25;
 
       pipe.push(search_cpd_stage);
       pipe.push(project_stage); 
@@ -501,7 +535,7 @@ server.get("/search_cpd", async (request, response) =>{
       console.log(e.message);
   };
 
-  console.log("DISPLAY _PIPE");
+  //console.log("DISPLAY _PIPE");
   console.log(pipe);
 
   try {

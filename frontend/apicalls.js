@@ -19,6 +19,10 @@ const opendoc = async () =>{
     }
 
 };
+const apply_facet = async ( facet_term ) =>{
+    alert(facet_term);
+    search_desc(facet_term);
+};
 
 const dbsearchfacet = async ( facet_term ) =>{
     let bx_majdesc = document.getElementById("BX-MAJDESC");
@@ -34,11 +38,11 @@ const dbsearchfacet = async ( facet_term ) =>{
         console.log(result);
         //alert(result);
         result.forEach(chat => {
-            let messageContainer = document.createElement("a");
+            let facetlink = document.createElement("dl");
             const myArray = chat._id.split("-");
-            messageContainer.innerHTML = `${myArray[0]}(${chat.count})` 
-            messageContainer.innerHTML += `</br>`
-            output.appendChild(messageContainer);
+            facetlink.innerHTML = `<dt onclick="apply_facet(${myArray[0]})">${myArray[0]}(${chat.count})</dt>` 
+            //facetlink.innerHTML += `</br>`
+            output.appendChild(facetlink);
         });
     }catch(e){
         console.error(e);
@@ -61,6 +65,7 @@ const dbsearch_doc = async ( val ) =>{
     params += "&bx_plusid="+bx_plusid.value;
     params += "&rn_reccode="+rn_reccode.value;
     params += "&barcode="+barcode.value;
+
     console.log(params);
     try
     {
@@ -183,6 +188,7 @@ const search_BCK_OLD_CODE = async ( valx ) =>{
 }; 
 
 const search_desc = async ( valx ) =>{
+    
     //alert("search_desc");
     let loc_term = document.getElementById("lk-location");
     let cs_term = document.getElementById("lk-customer");
@@ -190,6 +196,7 @@ const search_desc = async ( valx ) =>{
     let bx_majdesc = document.getElementById("BX-MAJDESC");
     let rn_reccode = document.getElementById("RN-RECCODE");
     let barcode = document.getElementById("barcode");
+
     //buildstring
     params  =  "location="+loc_term.value;
     params += "&CS-ID="+cs_term.value;
@@ -197,6 +204,7 @@ const search_desc = async ( valx ) =>{
     params += "&bx_majdesc="+bx_majdesc.value;
     params += "&rn_reccode="+rn_reccode.value;
     params += "&barcode="+barcode.value;
+    params += "&year="+valx;
     console.log(params);
 
     let cust_id = document.getElementById("lk-customer");
@@ -207,7 +215,7 @@ const search_desc = async ( valx ) =>{
     output.innerHTML = "";
 
     try{
-        dbsearchfacet(desc_term.value);
+        dbsearchfacet(desc_term.value,);
     }catch(e){
         console.error(e);
     }
